@@ -3,3 +3,6 @@ oauth2client
 pandas
 matplotlib
 streamlit
+streamlit-drawable-canvas
+fpdf
+pillow
