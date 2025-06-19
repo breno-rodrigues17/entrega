@@ -110,3 +110,33 @@ if st.button("💾 Salvar"):
 
         with open(pdf_path, "rb") as f:
             st.download_button("📥 Baixar PDF", f, file_name=os.path.basename(pdf_path), mime="application/pdf")
+
+        st.experimental_rerun()  # 🔄 Reinicia o app para limpar os campos
+
+# ========================
+# Listagem das entregas
+# ========================
+
+st.subheader("📋 Entregas Registradas")
+
+def listar_entregas():
+    conn = sqlite3.connect('expedicao.db')
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, nota_fiscal, nome_cliente, data, transportadora FROM entregas ORDER BY id DESC")
+    entregas = cursor.fetchall()
+    conn.close()
+    return entregas
+
+entregas = listar_entregas()
+
+if entregas:
+    for entrega in entregas:
+        st.markdown(f"""
+        🔹 **NF:** {entrega[1]}  
+        🧾 **Cliente:** {entrega[2]}  
+        🗓️ **Data:** {entrega[3]}  
+        🚛 **Transportadora:** {entrega[4]}  
+        ---
+        """)
+else:
+    st.info("Nenhuma entrega registrada ainda.")
