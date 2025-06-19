@@ -82,6 +82,25 @@ def salvar_no_banco(dados):
     conn.commit()
     conn.close()
 
+# Função para listar entregas
+def listar_entregas():
+    conn = sqlite3.connect('expedicao.db')
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, nota_fiscal, nome_cliente, rg_cpf_entregador, data, transportadora FROM entregas ORDER BY id DESC")
+    entregas = cursor.fetchall()
+    conn.close()
+    return entregas
+
+# Função para excluir entrega
+def excluir_entrega(id_entrega):
+    conn = sqlite3.connect('expedicao.db')
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM entregas WHERE id = ?", (id_entrega,))
+    conn.commit()
+    conn.close()
+    st.success(f"Entrega ID {id_entrega} excluída com sucesso.")
+    st.experimental_rerun()
+
 # Botão salvar
 if st.button("💾 Salvar"):
     if not nota_fiscal or not nome_cliente or not transportadora or not rg_cpf:
@@ -111,32 +130,31 @@ if st.button("💾 Salvar"):
         with open(pdf_path, "rb") as f:
             st.download_button("📥 Baixar PDF", f, file_name=os.path.basename(pdf_path), mime="application/pdf")
 
-        st.experimental_rerun()  # 🔄 Reinicia o app para limpar os campos
+        st.experimental_rerun()
 
 # ========================
-# Listagem das entregas
+# Listagem das entregas com botão de excluir
 # ========================
 
 st.subheader("📋 Entregas Registradas")
-
-def listar_entregas():
-    conn = sqlite3.connect('expedicao.db')
-    cursor = conn.cursor()
-    cursor.execute("SELECT id, nota_fiscal, nome_cliente, data, transportadora FROM entregas ORDER BY id DESC")
-    entregas = cursor.fetchall()
-    conn.close()
-    return entregas
 
 entregas = listar_entregas()
 
 if entregas:
     for entrega in entregas:
-        st.markdown(f"""
-        🔹 **NF:** {entrega[1]}  
-        🧾 **Cliente:** {entrega[2]}  
-        🗓️ **Data:** {entrega[3]}  
-        🚛 **Transportadora:** {entrega[4]}  
-        ---
-        """)
+        col1, col2 = st.columns([6, 1])
+        with col1:
+            st.markdown(f"""
+            🔢 **ID:** {entrega[0]}  
+            🔹 **NF:** {entrega[1]}  
+            🧾 **Cliente:** {entrega[2]}  
+            🪪 **Entregador:** {entrega[3]}  
+            🗓️ **Data:** {entrega[4]}  
+            🚛 **Transportadora:** {entrega[5]}  
+            """)
+        with col2:
+            if st.button("🗑️ Excluir", key=f"del_{entrega[0]}"):
+                excluir_entrega(entrega[0])
+        st.markdown("---")
 else:
     st.info("Nenhuma entrega registrada ainda.")
