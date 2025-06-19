@@ -6,3 +6,4 @@ streamlit
 streamlit-drawable-canvas
 fpdf
 pillow
+streamlit-aggrid
