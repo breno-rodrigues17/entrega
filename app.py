@@ -6,6 +6,8 @@ from fpdf import FPDF
 import sqlite3
 import io
 import os
+import pandas as pd
+from st_aggrid import AgGrid, GridOptionsBuilder, GridUpdateMode
 
 st.set_page_config(page_title="Sistema de Entrega", layout="centered")
 st.title("📦 Expedição de Material")
@@ -71,7 +73,7 @@ def gerar_pdf_com_assinatura(dados, img_bytes):
     pdf.output(pdf_path)
     return pdf_path
 
-# Função para salvar no banco
+# Funções de banco de dados
 def salvar_no_banco(dados):
     conn = sqlite3.connect('expedicao.db')
     cursor = conn.cursor()
@@ -82,7 +84,6 @@ def salvar_no_banco(dados):
     conn.commit()
     conn.close()
 
-# Função para listar entregas
 def listar_entregas():
     conn = sqlite3.connect('expedicao.db')
     cursor = conn.cursor()
@@ -91,7 +92,6 @@ def listar_entregas():
     conn.close()
     return entregas
 
-# Função para excluir entrega
 def excluir_entrega(id_entrega):
     conn = sqlite3.connect('expedicao.db')
     cursor = conn.cursor()
@@ -109,52 +109,4 @@ if st.button("💾 Salvar"):
         st.error("Por favor, faça a assinatura.")
     else:
         # Converte imagem da assinatura
-        img = Image.fromarray(canvas_result.image_data.astype('uint8'), 'RGBA')
-        buf = io.BytesIO()
-        img.save(buf, format="PNG")
-        img_bytes = buf.getvalue()
-
-        dados = {
-            "nota_fiscal": nota_fiscal,
-            "nome_cliente": nome_cliente,
-            "rg_cpf_entregador": rg_cpf,
-            "data": data.strftime("%Y-%m-%d"),
-            "transportadora": transportadora
-        }
-
-        salvar_no_banco(dados)
-        pdf_path = gerar_pdf_com_assinatura(dados, img_bytes)
-
-        st.success("✅ Dados e assinatura salvos com sucesso!")
-
-        with open(pdf_path, "rb") as f:
-            st.download_button("📥 Baixar PDF", f, file_name=os.path.basename(pdf_path), mime="application/pdf")
-
-        st.experimental_rerun()
-
-# ========================
-# Listagem das entregas com botão de excluir
-# ========================
-
-st.subheader("📋 Entregas Registradas")
-
-entregas = listar_entregas()
-
-if entregas:
-    for entrega in entregas:
-        col1, col2 = st.columns([6, 1])
-        with col1:
-            st.markdown(f"""
-            🔢 **ID:** {entrega[0]}  
-            🔹 **NF:** {entrega[1]}  
-            🧾 **Cliente:** {entrega[2]}  
-            🪪 **Entregador:** {entrega[3]}  
-            🗓️ **Data:** {entrega[4]}  
-            🚛 **Transportadora:** {entrega[5]}  
-            """)
-        with col2:
-            if st.button("🗑️ Excluir", key=f"del_{entrega[0]}"):
-                excluir_entrega(entrega[0])
-        st.markdown("---")
-else:
-    st.info("Nenhuma entrega registrada ainda.")
+        img = Image.froma
